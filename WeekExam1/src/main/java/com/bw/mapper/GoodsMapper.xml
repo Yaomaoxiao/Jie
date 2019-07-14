@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bw.mapper.GoodsMapper">
+	
+	<select id="getPesonList" resultType="map" parameterType="map">
+	 SELECT p.*,GROUP_CONCAT(g.gname) gnames  FROM 0709_peson p LEFT JOIN 0709_p_g pg ON
+     p.pid = pg.pid LEFT JOIN 0709_goods g ON pg.gid = g.gid
+     <where>
+      <if test="pname != null and pname != '' ">
+        and p.pname LIKE  CONCAT('%',#{pname},'%')
+      </if>
+      <if test="lowtime != null and lowtime != '' ">
+       and p.ptime >= #{lowtime}
+      </if>
+      <if test="hightime != null and hightime != '' ">
+       and p.ptime &lt;= #{hightime}
+      </if>
+     </where>
+     GROUP BY p.pid
+	</select>
+	
+	<select id="getGoodsList" resultType="Goods">
+	  SELECT *FROM 0709_goods
+	</select>
+	
+	
+	<insert id="addPeson" parameterType="peson" useGeneratedKeys="true" keyProperty="pid">
+	INSERT INTO 0709_peson (pname,ptime) VALUES(#{pname},#{ptime})
+	</insert>
+	
+	<insert id="addP_G" parameterType="map">
+	  INSERT INTO 0709_p_g (pid,gid) VALUES
+	  <foreach collection="ids" item="gid" separator=",">
+	   (#{peson.pid},#{gid})
+	  </foreach>
+	</insert>
+	
+	<!-- 修改回显 -->
+	<select id="getPesonByPid" resultType="Peson">
+	 SELECT * FROM 0709_peson WHERE pid = #{pid}
+	</select>
+	
+	
+	<!-- 查询当前数据的商品 -->
+	<select id="getPesonPid" resultType="int" parameterType="Peson">
+	SELECT gid FROM 0709_p_g WHERE pid = #{pid}
+	</select>
+	
+	<delete id="deleteAll" parameterType="Peson">
+	delete from 0709_peson where pid in (${value})
+	</delete>
+	
+</mapper>
